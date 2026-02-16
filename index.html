@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vercel Inventory Scanner</title>
+    <title>NUE Inventory</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body { font-family: system-ui; text-align: center; background: #fafafa; padding: 20px; }
@@ -16,7 +16,7 @@
     </style>
 </head>
 <body>
-    <h1>Inventory Pro</h1>
+    <h1>NUE Inventory Scanner</h1>
     <div id="reader"></div>
     <div id="status">Ready to scan</div>
 
@@ -44,7 +44,7 @@
         }
 
         async function sendToGoogle(action) {
-            document.getElementById('status').innerText = "Sending to Google...";
+            document.getElementById('status').innerText = "Sending to Database...";
             try {
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
