@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vercel Inventory Scanner</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: system-ui; text-align: center; background: #fafafa; padding: 20px; }
+        #reader { width: 100%; max-width: 400px; margin: auto; border-radius: 12px; }
+        .panel { display: none; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-top: 20px; }
+        button { padding: 15px 25px; margin: 10px; border: none; border-radius: 8px; font-weight: bold; color: white; }
+        .btn-in { background: #27ae60; }
+        .btn-out { background: #c0392b; }
+        #status { margin-top: 15px; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <h1>Inventory Pro</h1>
+    <div id="reader"></div>
+    <div id="status">Ready to scan</div>
+
+    <div id="controlPanel" class="panel">
+        <p>Item: <span id="codeDisplay">---</span></p>
+        <button class="btn-in" onclick="sendToGoogle('IN')">Stock IN (+1)</button>
+        <button class="btn-out" onclick="sendToGoogle('OUT')">Stock OUT (-1)</button>
+        <button style="background:#7f8c8d" onclick="restartScanner()">Scan New</button>
+    </div>
+
+    <audio id="beep" src="https://actions.google.com/sounds/v1/communication/notification_high_intensity.ogg"></audio>
+
+    <script>
+        const GAS_URL = "PASTE_YOUR_GOOGLE_WEB_APP_URL_HERE";
+        let scanner = new Html5Qrcode("reader");
+        let activeCode = "";
+
+        function start() {
+            scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
+                activeCode = text;
+                document.getElementById('codeDisplay').innerText = text;
+                document.getElementById('controlPanel').style.display = "block";
+                scanner.stop(); 
+            });
+        }
+
+        async function sendToGoogle(action) {
+            document.getElementById('status').innerText = "Sending to Google...";
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Critical for Google Apps Script redirects
+                    body: JSON.stringify({ barcode: activeCode, action: action })
+                });
+                
+                // Note: with no-cors, we can't read the JSON response directly, 
+                // but the data will still be updated in the Sheet.
+                document.getElementById('beep').play();
+                document.getElementById('status').innerText = "Update Sent!";
+            } catch (err) {
+                document.getElementById('status').innerText = "Error!";
+            }
+        }
+
+        function restartScanner() {
+            document.getElementById('controlPanel').style.display = "none";
+            start();
+        }
+
+        start();
+    </script>
+</body>
+</html>
