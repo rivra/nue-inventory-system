@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+      body { font-family: 'Segoe UI', sans-serif; text-align: center; padding: 20px; background: #f4f4f9; }
+      #reader { width: 100%; max-width: 400px; margin: auto; border-radius: 10px; overflow: hidden; }
+      .controls { display: none; margin-top: 20px; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+      button { padding: 12px 20px; margin: 5px; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; }
+      .btn-out { background-color: #e74c3c; } /* Red for Out */
+      .btn-in { background-color: #2ecc71; }  /* Green for In */
+      #status { margin-top: 20px; font-weight: bold; min-height: 1.2em; }
+    </style>
+  </head>
+  <body>
+    <h2>NUE - Inventory System</h2>
+    <div id="reader"></div>
+    <p><div id="status">Scanning...</div></p>
+
+    <p><div id="controlPanel" class="controls">
+      <button class="btn-in" onclick="updateStock('IN')">Add Stock (+1)</button>
+      <button class="btn-out" onclick="updateStock('OUT')">Check Out (-1)</button>
+    </div>
+    <div id="statusRec"></div>
+    </p>
+
+    <p><div id="lastAction"></div></p>
+
+    <div id="scannerControls" style="margin-bottom: 10px;">
+      <button id="torchBtn" onclick="toggleTorch()" style="background: #f39c12;">🔦 Toggle Flashlight</button>
+    </div>
+
+    <script>
+      let currentBarcode = "";
+      let isTorchOn = false;
+
+      function onScanSuccess(decodedText) {
+        html5QrCode.stop().then(() => {
+          currentBarcode = decodedText;
+          document.getElementById('statusRec').innerText = "";
+          document.getElementById('controlPanel').style.display = "block";
+          document.getElementById('status').innerText = "Serial Code: " + decodedText + " - Select Action";
+        })
+      }
+
+      function updateStock(action) {
+        document.getElementById('controlPanel').style.display = "none";
+        document.getElementById('statusRec').innerText = "Processing " + action + "...";
+        google.script.run
+          .withSuccessHandler((response) => {
+            document.getElementById('lastAction').innerText = "Last Action: " + response;
+            // Vibrates
+            if (navigator.vibrate) {
+              navigator.vibrate(300); 
+              }
+            resetScanner();
+          })
+          .recordData(currentBarcode,action);
+      }
+
+      function resetScanner() {
+        document.getElementById('controlPanel').style.display = "none";
+        document.getElementById('status').innerText = "Scanning...";
+        document.getElementById('statusRec').innerText = "";
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess);
+      }
+
+      async function toggleTorch() {
+        try {
+          isTorchOn = !isTorchOn;
+          
+          // Apply the constraint to the running camera track
+          await html5QrCode.applyVideoConstraints({
+            advanced: [{ torch: isTorchOn }]
+          });
+          
+          // Update button appearance
+          const btn = document.getElementById('torchBtn');
+          btn.style.background = isTorchOn ? "#2c3e50" : "#f39c12";
+          btn.innerText = isTorchOn ? "❌ Turn Off Flash" : "🔦 Turn On Flash";
+        
+        } catch (err) {
+          console.error("Flashlight not supported or camera not active:", err);
+          alert("Flashlight is not available on this camera/browser.");
+        }
+      }
+
+      const html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess);
+    </script>
+  </body>
+</html>
