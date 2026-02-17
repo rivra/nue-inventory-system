@@ -74,7 +74,7 @@
                 // Get all video devices
                 const videoInputDevices = await codeReader.listVideoInputDevices();
                 // Select the back camera (usually the last one on iPhones)
-                const selectedDeviceId = videoInputDevices[videoInputDevices.length - 1].deviceId;
+                const selectedDeviceId = videoInputDevices[videoInputDevices.length - 2].deviceId;
             
                 codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
                     if (result) {
