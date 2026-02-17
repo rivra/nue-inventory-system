@@ -50,6 +50,7 @@
                 // but the data will still be updated in the Sheet.
                 document.getElementById('beep').play();
                 document.getElementById('status').innerText = "Update Sent!";
+                alert("Recorded " + action + " for " + activeCode);
             } catch (err) {
                 document.getElementById('status').innerText = "Error!";
             }
