@@ -73,24 +73,51 @@
             try {
                 // Get all video devices
                 const videoInputDevices = await codeReader.listVideoInputDevices();
-                // Select the back camera (usually the last one on iPhones)
-                const selectedDeviceId = videoInputDevices[videoInputDevices.length - 3].deviceId;
-            
-                codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+
+    	        // 1. Filter for the best "Back" camera
+                // iPhones usually name the telephoto lens as 'Back Camera' or includes 'zoom'
+                let selectedDeviceId = null;
+
+                // Search for a camera that explicitly mentions 'telephoto' or 'zoom'
+                const telephotoCamera = videoInputDevices.find(device => 
+                    device.label.toLowerCase().includes('telephoto') || 
+                    device.label.toLowerCase().includes('zoom')                                              
+                );
+                
+                if (telephotoCamera) {
+                    selectedDeviceId = telephotoCamera.deviceId;
+                } else {
+                    // Fallback: If no explicit telephoto, pick the very last camera in the list
+                    // (On iOS, the last camera is typically the highest zoom/optical lens)
+                    selectedDeviceId = videoInputDevices[videoInputDevices.length - 1].deviceId;
+                }
+                
+                console.log("Selected Lens:", selectedDeviceId);
+                
+                // 2. Start decoding with specific constraints for focus
+                const constraints = {
+                    video: {
+                        deviceId: { exact: selectedDeviceId },
+                        // These help the iPhone prioritize sharpness over frame rate
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: "environment"
+                    }
+                };
+                
+                codeReader.decodeFromConstraints(constraints, 'video', (result, err) => {
                     if (result) {
-                        console.log("Scanned:", result.text);
                         activeCode = result.text;
-          
-                        // Trigger your UI and play sound
                         document.getElementById('codeDisplay').innerText = result.text;
                         document.getElementById('controlPanel').style.display = "block";
-                    
-                        // Stop scanning to save battery
+                        document.getElementById('beep').play();
                         codeReader.reset();
                     }
                 });
+            
             } catch (err) {
-                console.error("Camera Error:", err);
+                console.error("Camera selection error:", err);
+                alert("Could not access the telephoto lens. Ensure permissions are granted.");
             }
         }
         
