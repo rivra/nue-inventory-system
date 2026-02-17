@@ -51,6 +51,7 @@
                 document.getElementById('beep').play();
                 document.getElementById('status').innerText = "Update Sent!";
                 alert("Recorded " + action + " for " + activeCode);
+                restartScanner();
             } catch (err) {
                 document.getElementById('status').innerText = "Error!";
             }
