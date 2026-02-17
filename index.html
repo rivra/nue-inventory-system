@@ -37,15 +37,6 @@
         const videoElement = document.getElementById('video');
         let activeCode = "";
 
-        // function start() {
-        //     scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-        //         activeCode = text;
-        //         document.getElementById('codeDisplay').innerText = text;
-        //         document.getElementById('controlPanel').style.display = "block";
-        //         scanner.stop(); 
-        //     });
-        // }
-
         async function sendToGoogle(action) {
             document.getElementById('status').innerText = "Sending to Database...";
             try {
@@ -64,10 +55,10 @@
             }
         }
 
-        // function restartScanner() {
-        //     document.getElementById('controlPanel').style.display = "none";
-        //     start();
-        // }
+        function restartScanner() {
+            document.getElementById('controlPanel').style.display = "none";
+            startScanner();
+        }
         
         async function startScanner() {
             try {
@@ -121,9 +112,9 @@
             }
         }
         
-        function stopScanner() {
-            codeReader.reset();
-        }
+        // function stopScanner() {
+        //     codeReader.reset();
+        // }
 
         startScanner();
     </script>
